@@ -5,6 +5,7 @@ uint8_t global_client_ip[4];
 uint8_t global_server_ip[4];
 unsigned char global_packet[10000];
 int global_ret = 0;
+uint16_t global_id = 0x1000;
 
 void dump(unsigned char* buf, int size) {
     int i;
@@ -74,10 +75,11 @@ static u_int32_t print_pkt (struct nfq_data *tb)
     Ip * data_ip_header = (Ip *)data;
     Tcp * data_tcp_header = (Tcp *)(data + 20);
     uint16_t sub_s_port = ntohs(data_tcp_header->s_port);
+    uint16_t sub_d_port = ntohs(data_tcp_header->d_port);
 
     if(ntohs(data_tcp_header->d_port) == 0x1f90)
     {
-        printf("This is Fake packet\n");
+        printf("\nThis is Fake packet ~~\n");
 
         Ip * ip_header = (Ip *)global_packet;
 
@@ -99,6 +101,7 @@ static u_int32_t print_pkt (struct nfq_data *tb)
 
     else
     {
+        printf("\nGO GO FAKE !!!\n");
         Ip * ip_header = (Ip *)global_packet;
         Tcp * tcp_header = (Tcp *)(global_packet + 20);
 
@@ -107,15 +110,16 @@ static u_int32_t print_pkt (struct nfq_data *tb)
         ip_header->VHL = 0x45;
         ip_header->TOS = 0x00;
         ip_header->Total_LEN = htons(uint16_t(ret+40));
-        ip_header->Id = htons(0x1234);
+        ip_header->Id = htons(global_id);
+        global_id++;
         ip_header->Fragment = htons(0x4000);
         ip_header->TTL = 0x40;
         ip_header->protocol = 0x06;
         memcpy(ip_header->s_ip, global_server_ip, 4);
         memcpy(ip_header->d_ip, global_client_ip, 4);
 
-        tcp_header->s_port = htons(sub_s_port);
-        tcp_header->d_port = htons(0x1f90);
+        tcp_header->s_port = htons(0x1f90);
+        tcp_header->d_port = htons(0x1f91);
         tcp_header->seq = htonl(1);
         tcp_header->ack = htonl(1);
         tcp_header->OFF = 0x50;
