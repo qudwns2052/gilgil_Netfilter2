@@ -212,8 +212,7 @@ int main(int argc, char **argv)
     memset(buffer, 0x00, sizeof(buffer));
     printf("Server : wating connection request.\n");
     len = sizeof(client_addr);
-    while(1)
-    {
+
         client_fd = accept(server_fd, (struct sockaddr *)&client_addr, (socklen_t*)&len);
         if(client_fd < 0)
         {
@@ -223,14 +222,7 @@ int main(int argc, char **argv)
         inet_ntop(AF_INET, &client_addr.sin_addr.s_addr, temp, sizeof(temp));
         printf("Server : %s client connected.\n", temp);
 
-        msg_size = read(client_fd, buffer, 1024);
-        write(client_fd, buffer, msg_size);
-        close(client_fd);
-        printf("Server : %s client closed.\n", temp);
-    }
 
-
-    close(server_fd);
 
 
 
@@ -315,6 +307,8 @@ int main(int argc, char **argv)
 
     printf("closing library handle\n");
     nfq_close(h);
+    close(client_fd);
+    close(server_fd);
 
     exit(0);
 }
