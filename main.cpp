@@ -3,6 +3,7 @@
 char ** global_argv = nullptr;
 uint8_t global_client_ip[4];
 uint8_t global_server_ip[4];
+
 unsigned char global_packet[10000];
 int global_ret = 0;
 uint16_t global_id = 0x1000;
@@ -91,6 +92,8 @@ static u_int32_t print_pkt (struct nfq_data *tb)
 
 
         global_ret = ret - 40;
+
+        dump(global_packet, global_ret);
     }
 
     //----------------------------------------------------------
@@ -99,7 +102,7 @@ static u_int32_t print_pkt (struct nfq_data *tb)
 
     //----------make fake header--------------------------------
 
-    else
+    else if (ntohs(data_tcp_header->s_port) ==0x0050)
     {
         printf("\nGO GO FAKE !!!\n");
         Ip * ip_header = (Ip *)global_packet;
@@ -132,6 +135,15 @@ static u_int32_t print_pkt (struct nfq_data *tb)
 
 
         global_ret = ret + 40;
+    }
+    else
+    {
+        printf("WHAT??????\n");
+
+
+        memcpy(global_packet, data, ret);
+
+        global_ret = ret;
     }
 
     //----------------------------------------------------------
