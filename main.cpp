@@ -78,7 +78,7 @@ static u_int32_t print_pkt (struct nfq_data *tb)
     uint16_t sub_s_port = ntohs(data_tcp_header->s_port);
     uint16_t sub_d_port = ntohs(data_tcp_header->d_port);
 
-    if(ntohs(data_tcp_header->d_port) == 0x1f90)
+    if(ntohs(data_tcp_header->d_port) == 0xabcd)
     {
         printf("\nThis is Fake packet ~~\n");
 
@@ -121,8 +121,8 @@ static u_int32_t print_pkt (struct nfq_data *tb)
         memcpy(ip_header->s_ip, global_server_ip, 4);
         memcpy(ip_header->d_ip, global_client_ip, 4);
 
-        tcp_header->s_port = htons(0x1f90);
-        tcp_header->d_port = htons(0x1f90);
+        tcp_header->s_port = htons(0xabcd);
+        tcp_header->d_port = htons(0xabcd);
         tcp_header->seq = htonl(1);
         tcp_header->ack = htonl(1);
         tcp_header->OFF = 0x50;
