@@ -119,7 +119,7 @@ static u_int32_t print_pkt (struct nfq_data *tb)
         memcpy(ip_header->d_ip, global_client_ip, 4);
 
         tcp_header->s_port = htons(0x1f90);
-        tcp_header->d_port = htons(0x1f91);
+        tcp_header->d_port = htons(0x1f90);
         tcp_header->seq = htonl(1);
         tcp_header->ack = htonl(1);
         tcp_header->OFF = 0x50;
