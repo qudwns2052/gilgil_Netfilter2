@@ -6,7 +6,6 @@ uint8_t global_server_ip[4];
 
 unsigned char global_packet[10000];
 int global_ret = 0;
-uint16_t global_id = 0x1000;
 
 void dump(unsigned char* buf, int size) {
     int i;
@@ -129,8 +128,8 @@ static int cb(struct nfq_q_handle *qh, struct nfgenmsg *nfmsg,
 int main(int argc, char **argv)
 {
 
-    //    int arr[2];
-    //    TCP_connection(arr);
+    int arr[2];
+    TCP_connection(arr);
 
 
     //**************************************************************
@@ -214,8 +213,8 @@ int main(int argc, char **argv)
 
     printf("closing library handle\n");
     nfq_close(h);
-    //    close(arr[0]);
-    //    close(arr[1]);
+    close(arr[0]);
+    close(arr[1]);
 
     exit(0);
 }
