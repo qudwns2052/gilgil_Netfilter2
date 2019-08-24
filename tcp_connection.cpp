@@ -27,6 +27,7 @@ void TCP_connection(int * arr)
     //server_fd, client_fd : 각 소켓 번호
     int len, msg_size;
 
+
     if((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == -1)
     {// 소켓 생성
         printf("Server : Can't open stream socket\n");
@@ -39,6 +40,9 @@ void TCP_connection(int * arr)
     server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
     server_addr.sin_port = htons(0xabcd);
     //server_addr 셋팅
+
+    int nSockOpt;
+    setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &nSockOpt, sizeof(nSockOpt));
 
     if(bind(server_fd, (struct sockaddr *)&server_addr, sizeof(server_addr)) <0)
     {//bind() 호출
@@ -57,11 +61,13 @@ void TCP_connection(int * arr)
     len = sizeof(client_addr);
 
     client_fd = accept(server_fd, (struct sockaddr *)&client_addr, (socklen_t*)&len);
+
     if(client_fd < 0)
     {
         printf("Server: accept failed.\n");
         exit(0);
     }
+
     inet_ntop(AF_INET, &client_addr.sin_addr.s_addr, temp, sizeof(temp));
     printf("Server : %s client connected.\n", temp);
 
