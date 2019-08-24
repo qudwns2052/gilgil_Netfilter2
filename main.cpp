@@ -121,7 +121,8 @@ static int cb(struct nfq_q_handle *qh, struct nfgenmsg *nfmsg,
 int main(int argc, char **argv)
 {
 
-    TCP_connection();
+    int arr[2];
+    TCP_connection(arr);
 
 
     //**************************************************************
@@ -205,6 +206,8 @@ int main(int argc, char **argv)
 
     printf("closing library handle\n");
     nfq_close(h);
+    close(arr[0]);
+    close(arr[1]);
 
     exit(0);
 }

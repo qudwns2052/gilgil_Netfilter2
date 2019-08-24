@@ -18,7 +18,7 @@ void GET_my_ip(char * dev, uint8_t * my_ip)
     memcpy(my_ip, &((((struct sockaddr_in *)&ifr.ifr_addr)->sin_addr).s_addr), 4);
 }
 
-void TCP_connection(void)
+void TCP_connection(int * arr)
 {
     char buffer[BUF_LEN];
     struct sockaddr_in server_addr, client_addr;
@@ -64,5 +64,8 @@ void TCP_connection(void)
     }
     inet_ntop(AF_INET, &client_addr.sin_addr.s_addr, temp, sizeof(temp));
     printf("Server : %s client connected.\n", temp);
+
+    arr[0] = server_fd;
+    arr[1] = client_fd;
 
 }
