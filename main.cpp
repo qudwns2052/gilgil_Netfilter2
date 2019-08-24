@@ -48,7 +48,7 @@ static u_int32_t print_pkt (struct nfq_data *tb)
 
     //---------Is Fake packet?-------------------------------------
 
-    if(ntohs(data_tcp_header->d_port) == 0xabcd && flag == 0x02)
+    if(ntohs(data_tcp_header->d_port) == 0xabcd && flag == 0x18)
     {
 
         printf("\nLet's Decapsulation\n");
@@ -94,7 +94,7 @@ static u_int32_t print_pkt (struct nfq_data *tb)
     //        tcp_header->seq = htonl(1);
     //        tcp_header->ack = htonl(1);
     //        tcp_header->OFF = 0x50;
-    //        tcp_header->flag = 0x02;
+    //        tcp_header->flag = 0x18;
     //        tcp_header->win_size = htons(0x1212);
     //        tcp_header->urg_pointer = 0;
 
