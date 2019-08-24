@@ -22,3 +22,5 @@
 #include "protocol_structure.h"
 #include "cal_checksum.h"
 #include "tcp_connection.h"
+
+#define BUF_LEN 128
