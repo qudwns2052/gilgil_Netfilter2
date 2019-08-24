@@ -29,12 +29,10 @@ static u_int32_t print_pkt (struct nfq_data *tb)
     unsigned char *data;
 
     ph = nfq_get_msg_packet_hdr(tb);
-        if (ph)
-        {
-            id = ntohl(ph->packet_id);
-//            printf("hw_protocol=0x%04x hook=%u id=%u ",
-//                ntohs(ph->hw_protocol), ph->hook, id);
-        }
+    if (ph)
+    {
+        id = ntohl(ph->packet_id);
+    }
 
     ret = nfq_get_payload(tb, &data);
 
@@ -52,19 +50,15 @@ static u_int32_t print_pkt (struct nfq_data *tb)
 
     if(ntohs(data_tcp_header->d_port) == 0xabcd && flag == 0x02 && ntohs(data_ip_header->Id) == 0x1234)
     {
+
         printf("\nLet's Decapsulation\n");
 
         Ip * ip_header = (Ip *)global_packet;
-
         memcpy(global_packet, data + 40, ret - 40);
-
         memcpy(ip_header->s_ip, global_server_ip, 4);
-
         calIPChecksum(global_packet);
 
-
         global_ret = ret - 40;
-
         dump(global_packet, global_ret);
     }
 
@@ -76,40 +70,40 @@ static u_int32_t print_pkt (struct nfq_data *tb)
         memcpy(global_packet, data, ret);
         global_ret = ret;
     }
-//    else
-//    {
-//        printf("GO GO FAKE !!!\n");
-//        Ip * ip_header = (Ip *)global_packet;
-//        Tcp * tcp_header = (Tcp *)(global_packet + 20);
+    //    else
+    //    {
+    //        printf("GO GO FAKE !!!\n");
+    //        Ip * ip_header = (Ip *)global_packet;
+    //        Tcp * tcp_header = (Tcp *)(global_packet + 20);
 
-//        memcpy(global_packet + 40, data, ret);
+    //        memcpy(global_packet + 40, data, ret);
 
-//        ip_header->VHL = 0x45;
-//        ip_header->TOS = 0x00;
-//        ip_header->Total_LEN = htons(uint16_t(ret+40));
-//        ip_header->Id = htons(0x1234);
+    //        ip_header->VHL = 0x45;
+    //        ip_header->TOS = 0x00;
+    //        ip_header->Total_LEN = htons(uint16_t(ret+40));
+    //        ip_header->Id = htons(0x1234);
 
-//        ip_header->Fragment = htons(0x4000);
-//        ip_header->TTL = 0x40;
-//        ip_header->protocol = 0x06;
-//        memcpy(ip_header->s_ip, global_server_ip, 4);
-//        memcpy(ip_header->d_ip, global_client_ip, 4);
+    //        ip_header->Fragment = htons(0x4000);
+    //        ip_header->TTL = 0x40;
+    //        ip_header->protocol = 0x06;
+    //        memcpy(ip_header->s_ip, global_server_ip, 4);
+    //        memcpy(ip_header->d_ip, global_client_ip, 4);
 
-//        tcp_header->s_port = htons(0xabcd);
-//        tcp_header->d_port = htons(0xabcd);
-//        tcp_header->seq = htonl(1);
-//        tcp_header->ack = htonl(1);
-//        tcp_header->OFF = 0x50;
-//        tcp_header->flag = 0x02;
-//        tcp_header->win_size = htons(0x1212);
-//        tcp_header->urg_pointer = 0;
+    //        tcp_header->s_port = htons(0xabcd);
+    //        tcp_header->d_port = htons(0xabcd);
+    //        tcp_header->seq = htonl(1);
+    //        tcp_header->ack = htonl(1);
+    //        tcp_header->OFF = 0x50;
+    //        tcp_header->flag = 0x02;
+    //        tcp_header->win_size = htons(0x1212);
+    //        tcp_header->urg_pointer = 0;
 
-//        calIPChecksum(global_packet);
-//        calTCPChecksum(global_packet, ret + 40);
+    //        calIPChecksum(global_packet);
+    //        calTCPChecksum(global_packet, ret + 40);
 
 
-//        global_ret = ret + 40;
-//    }
+    //        global_ret = ret + 40;
+    //    }
 
     //----------------------------------------------------------
 
@@ -135,8 +129,8 @@ static int cb(struct nfq_q_handle *qh, struct nfgenmsg *nfmsg,
 int main(int argc, char **argv)
 {
 
-//    int arr[2];
-//    TCP_connection(arr);
+    //    int arr[2];
+    //    TCP_connection(arr);
 
 
     //**************************************************************
@@ -147,7 +141,7 @@ int main(int argc, char **argv)
     int rv;
     char buf[4096] __attribute__ ((aligned));
 
-    char * dev = "eth0";
+    char * dev = "wlan0";
     GET_my_ip(dev, global_server_ip);
     inet_pton(AF_INET, argv[1], global_client_ip);
 
@@ -220,8 +214,8 @@ int main(int argc, char **argv)
 
     printf("closing library handle\n");
     nfq_close(h);
-//    close(arr[0]);
-//    close(arr[1]);
+    //    close(arr[0]);
+    //    close(arr[1]);
 
     exit(0);
 }
