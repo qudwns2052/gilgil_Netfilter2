@@ -178,12 +178,6 @@ int main(int argc, char **argv)
     //server_fd, client_fd : 각 소켓 번호
     int len, msg_size;
 
-    if(argc != 2)
-    {
-        printf("usage : %s [port]\n", argv[0]);
-        exit(0);
-    }
-
     if((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == -1)
     {// 소켓 생성
         printf("Server : Can't open stream socket\n");
