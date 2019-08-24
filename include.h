@@ -14,8 +14,11 @@
 #include <netinet/udp.h>
 #include <iostream>
 #include <cstring>
+#include <sys/ioctl.h>
+#include <net/if.h>
 
 #include <libnetfilter_queue/libnetfilter_queue.h>
 
 #include "protocol_structure.h"
 #include "cal_checksum.h"
+#include "tcp_connection.h"

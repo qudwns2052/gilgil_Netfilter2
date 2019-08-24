@@ -8,8 +8,6 @@ unsigned char global_packet[10000];
 int global_ret = 0;
 uint16_t global_id = 0x1000;
 
-#define BUF_LEN 128
-
 void dump(unsigned char* buf, int size) {
     int i;
     for (i = 0; i < size; i++) {
@@ -30,59 +28,21 @@ static u_int32_t print_pkt (struct nfq_data *tb)
     int ret;
     unsigned char *data;
 
-    ph = nfq_get_msg_packet_hdr(tb);
-    if (ph) {
-        id = ntohl(ph->packet_id);
-        printf("hw_protocol=0x%04x hook=%u id=%u ",
-               ntohs(ph->hw_protocol), ph->hook, id);
-    }
-
-    hwph = nfq_get_packet_hw(tb);
-    if (hwph) {
-        int i, hlen = ntohs(hwph->hw_addrlen);
-
-        printf("hw_src_addr=");
-        for (i = 0; i < hlen-1; i++)
-            printf("%02x:", hwph->hw_addr[i]);
-        printf("%02x ", hwph->hw_addr[hlen-1]);
-    }
-
-    mark = nfq_get_nfmark(tb);
-    if (mark)
-        printf("mark=%u ", mark);
-
-    ifi = nfq_get_indev(tb);
-    if (ifi)
-        printf("indev=%u ", ifi);
-
-    ifi = nfq_get_outdev(tb);
-    if (ifi)
-        printf("outdev=%u ", ifi);
-    ifi = nfq_get_physindev(tb);
-    if (ifi)
-        printf("physindev=%u ", ifi);
-
-    ifi = nfq_get_physoutdev(tb);
-    if (ifi)
-        printf("physoutdev=%u ", ifi);
-
     ret = nfq_get_payload(tb, &data);
-    if (ret >= 0)
-        printf("payload_len=%d ", ret);
-    // dump(data, ret);
+
     //*****************************************************************//
+
+    Ip * data_ip_header = (Ip *)data;
+    int ip_size = (data_ip_header->VHL & 0x0F) * 4;
+    Tcp * data_tcp_header = (Tcp *)(data + ip_size);
+    uint8_t flag = data_tcp_header->flag & 0x3f;
 
 
     //---------Is Fake packet?-------------------------------------
 
-    Ip * data_ip_header = (Ip *)data;
-    Tcp * data_tcp_header = (Tcp *)(data + 20);
-    uint16_t sub_s_port = ntohs(data_tcp_header->s_port);
-    uint16_t sub_d_port = ntohs(data_tcp_header->d_port);
-
-    if(ntohs(data_tcp_header->d_port) == 0xabcd)
+    if(ntohs(data_tcp_header->d_port) == 0xabcd && flag == 0x02 && ntohs(data_ip_header->Id) == 0x1234)
     {
-        printf("\nThis is Fake packet ~~\n");
+        printf("\nLet's Decapsulation\n");
 
         Ip * ip_header = (Ip *)global_packet;
 
@@ -100,11 +60,9 @@ static u_int32_t print_pkt (struct nfq_data *tb)
 
     //----------------------------------------------------------
 
-
-
     //----------make fake header--------------------------------
 
-    else if (ntohs(data_tcp_header->s_port) ==0x0050)
+    else
     {
         printf("\nGO GO FAKE !!!\n");
         Ip * ip_header = (Ip *)global_packet;
@@ -115,8 +73,8 @@ static u_int32_t print_pkt (struct nfq_data *tb)
         ip_header->VHL = 0x45;
         ip_header->TOS = 0x00;
         ip_header->Total_LEN = htons(uint16_t(ret+40));
-        ip_header->Id = htons(global_id);
-        global_id++;
+        ip_header->Id = htons(0x1234);
+
         ip_header->Fragment = htons(0x4000);
         ip_header->TTL = 0x40;
         ip_header->protocol = 0x06;
@@ -138,15 +96,6 @@ static u_int32_t print_pkt (struct nfq_data *tb)
 
         global_ret = ret + 40;
     }
-    else
-    {
-        printf("WHAT??????\n");
-
-
-        memcpy(global_packet, data, ret);
-
-        global_ret = ret;
-    }
 
     //----------------------------------------------------------
 
@@ -165,12 +114,14 @@ static int cb(struct nfq_q_handle *qh, struct nfgenmsg *nfmsg,
               struct nfq_data *nfa, void *data)
 {
     u_int32_t id = print_pkt(nfa);
-    printf("entering callback\n");
+    //    printf("entering callback\n");
     return nfq_set_verdict(qh, id, NF_ACCEPT, global_ret, global_packet);
 }
 
 int main(int argc, char **argv)
 {
+
+    /*
     char buffer[BUF_LEN];
     struct sockaddr_in server_addr, client_addr;
     char temp[20];
@@ -214,7 +165,7 @@ int main(int argc, char **argv)
             exit(0);
         }
         inet_ntop(AF_INET, &client_addr.sin_addr.s_addr, temp, sizeof(temp));
-        printf("Server : %s client connected.\n", temp);
+        printf("Server : %s client connected.\n", temp);*/
 
 
 
@@ -228,9 +179,9 @@ int main(int argc, char **argv)
     int rv;
     char buf[4096] __attribute__ ((aligned));
 
-    global_argv = argv;
-    inet_pton(AF_INET, global_argv[1], global_client_ip);
-    inet_pton(AF_INET, global_argv[2], global_server_ip);
+    char * dev = "eth0";
+    GET_my_ip(dev, global_server_ip);
+    inet_pton(AF_INET, argv[1], global_client_ip);
 
 
 
@@ -270,7 +221,7 @@ int main(int argc, char **argv)
 
     for (;;) {
         if ((rv = recv(fd, buf, sizeof(buf), 0)) >= 0) {
-            printf("pkt received\n");
+            //            printf("pkt received\n");
             nfq_handle_packet(h, buf, rv);
             continue;
         }
@@ -301,8 +252,6 @@ int main(int argc, char **argv)
 
     printf("closing library handle\n");
     nfq_close(h);
-    close(client_fd);
-    close(server_fd);
 
     exit(0);
 }

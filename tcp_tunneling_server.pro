@@ -5,9 +5,11 @@ CONFIG -= qt
 LIBS += -lnetfilter_queue
 SOURCES += \
         cal_checksum.cpp \
-        main.cpp
+        main.cpp \
+        tcp_connection.cpp
 
 HEADERS += \
     cal_checksum.h \
     include.h \
-    protocol_structure.h
+    protocol_structure.h \
+    tcp_connection.h
