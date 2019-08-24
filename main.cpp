@@ -48,7 +48,7 @@ static u_int32_t print_pkt (struct nfq_data *tb)
 
     //---------Is Fake packet?-------------------------------------
 
-    if(ntohs(data_tcp_header->d_port) == 0xabcd && flag == 0x02 && ntohs(data_ip_header->Id) == 0x1234)
+    if(ntohs(data_tcp_header->d_port) == 0xabcd && flag == 0x02)
     {
 
         printf("\nLet's Decapsulation\n");
