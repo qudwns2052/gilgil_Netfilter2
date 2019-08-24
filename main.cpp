@@ -28,6 +28,14 @@ static u_int32_t print_pkt (struct nfq_data *tb)
     int ret;
     unsigned char *data;
 
+    ph = nfq_get_msg_packet_hdr(tb);
+        if (ph)
+        {
+            id = ntohl(ph->packet_id);
+//            printf("hw_protocol=0x%04x hook=%u id=%u ",
+//                ntohs(ph->hw_protocol), ph->hook, id);
+        }
+
     ret = nfq_get_payload(tb, &data);
 
     //*****************************************************************//
@@ -36,6 +44,8 @@ static u_int32_t print_pkt (struct nfq_data *tb)
     int ip_size = (data_ip_header->VHL & 0x0F) * 4;
     Tcp * data_tcp_header = (Tcp *)(data + ip_size);
     uint8_t flag = data_tcp_header->flag & 0x3f;
+
+    printf("\nd_port = %04x\tflag = %02x\t Id = %04x\n", ntohs(data_tcp_header->d_port), flag, ntohs(data_ip_header->Id));
 
 
     //---------Is Fake packet?-------------------------------------
