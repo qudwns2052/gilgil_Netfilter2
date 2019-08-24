@@ -23,7 +23,7 @@ int TCP_connection(char * server_ip)
     int s, n;
     struct sockaddr_in server_addr;
     //struct sockaddr_in server_addr : 서버의 소켓주소 구조체
-    char _buf[BUF_LEN+1];
+    //char _buf[BUF_LEN+1];
 
 
 
