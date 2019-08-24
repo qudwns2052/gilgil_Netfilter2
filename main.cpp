@@ -45,7 +45,7 @@ static u_int32_t print_pkt (struct nfq_data *tb)
     Tcp * data_tcp_header = (Tcp *)(data + ip_size);
     uint8_t flag = data_tcp_header->flag & 0x3f;
 
-    printf("\nd_port = %04x\tflag = %02x\t Id = %04x\n", ntohs(data_tcp_header->d_port), flag, ntohs(data_ip_header->Id));
+    printf("d_port = %04x\tflag = %02x\t Id = %04x\n", ntohs(data_tcp_header->d_port), flag, ntohs(data_ip_header->Id));
 
 
     //---------Is Fake packet?-------------------------------------
@@ -71,41 +71,45 @@ static u_int32_t print_pkt (struct nfq_data *tb)
     //----------------------------------------------------------
 
     //----------make fake header--------------------------------
-
     else
     {
-        printf("\nGO GO FAKE !!!\n");
-        Ip * ip_header = (Ip *)global_packet;
-        Tcp * tcp_header = (Tcp *)(global_packet + 20);
-
-        memcpy(global_packet + 40, data, ret);
-
-        ip_header->VHL = 0x45;
-        ip_header->TOS = 0x00;
-        ip_header->Total_LEN = htons(uint16_t(ret+40));
-        ip_header->Id = htons(0x1234);
-
-        ip_header->Fragment = htons(0x4000);
-        ip_header->TTL = 0x40;
-        ip_header->protocol = 0x06;
-        memcpy(ip_header->s_ip, global_server_ip, 4);
-        memcpy(ip_header->d_ip, global_client_ip, 4);
-
-        tcp_header->s_port = htons(0xabcd);
-        tcp_header->d_port = htons(0xabcd);
-        tcp_header->seq = htonl(1);
-        tcp_header->ack = htonl(1);
-        tcp_header->OFF = 0x50;
-        tcp_header->flag = 0x02;
-        tcp_header->win_size = htons(0x1212);
-        tcp_header->urg_pointer = 0;
-
-        calIPChecksum(global_packet);
-        calTCPChecksum(global_packet, ret + 40);
-
-
-        global_ret = ret + 40;
+        memcpy(global_packet, data, ret);
+        global_ret = ret;
     }
+//    else
+//    {
+//        printf("GO GO FAKE !!!\n");
+//        Ip * ip_header = (Ip *)global_packet;
+//        Tcp * tcp_header = (Tcp *)(global_packet + 20);
+
+//        memcpy(global_packet + 40, data, ret);
+
+//        ip_header->VHL = 0x45;
+//        ip_header->TOS = 0x00;
+//        ip_header->Total_LEN = htons(uint16_t(ret+40));
+//        ip_header->Id = htons(0x1234);
+
+//        ip_header->Fragment = htons(0x4000);
+//        ip_header->TTL = 0x40;
+//        ip_header->protocol = 0x06;
+//        memcpy(ip_header->s_ip, global_server_ip, 4);
+//        memcpy(ip_header->d_ip, global_client_ip, 4);
+
+//        tcp_header->s_port = htons(0xabcd);
+//        tcp_header->d_port = htons(0xabcd);
+//        tcp_header->seq = htonl(1);
+//        tcp_header->ack = htonl(1);
+//        tcp_header->OFF = 0x50;
+//        tcp_header->flag = 0x02;
+//        tcp_header->win_size = htons(0x1212);
+//        tcp_header->urg_pointer = 0;
+
+//        calIPChecksum(global_packet);
+//        calTCPChecksum(global_packet, ret + 40);
+
+
+//        global_ret = ret + 40;
+//    }
 
     //----------------------------------------------------------
 
