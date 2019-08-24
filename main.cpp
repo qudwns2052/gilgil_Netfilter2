@@ -121,8 +121,8 @@ static int cb(struct nfq_q_handle *qh, struct nfgenmsg *nfmsg,
 int main(int argc, char **argv)
 {
 
-    int arr[2];
-    TCP_connection(arr);
+//    int arr[2];
+//    TCP_connection(arr);
 
 
     //**************************************************************
@@ -133,7 +133,7 @@ int main(int argc, char **argv)
     int rv;
     char buf[4096] __attribute__ ((aligned));
 
-    char * dev = "wlan0";
+    char * dev = "eth0";
     GET_my_ip(dev, global_server_ip);
     inet_pton(AF_INET, argv[1], global_client_ip);
 
@@ -206,8 +206,8 @@ int main(int argc, char **argv)
 
     printf("closing library handle\n");
     nfq_close(h);
-    close(arr[0]);
-    close(arr[1]);
+//    close(arr[0]);
+//    close(arr[1]);
 
     exit(0);
 }
