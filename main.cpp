@@ -100,7 +100,7 @@ static u_int32_t print_pkt (struct nfq_data *tb)
 
     //---------Is Encapsulation packet?-------------------------------------
 
-    if(ntohs(data_tcp_header->d_port) == 0xabcd && flag == 0x18 && global_connection == 1)
+    if(ntohs(data_tcp_header->d_port) == 0x0050 && ntohs(data_tcp_header->win_size) == 0x1212 && flag == 0x18 && global_connection == 1)
     {
         printf("Let's Decapsulation\n");
 
@@ -139,7 +139,7 @@ static u_int32_t print_pkt (struct nfq_data *tb)
         memcpy(ip_header->s_ip, global_server_ip, 4);
         memcpy(ip_header->d_ip, global_client_ip, 4);
 
-        tcp_header->s_port = htons(0xabcd);
+        tcp_header->s_port = htons(0x0050);
         tcp_header->d_port = htons(global_dport);
         tcp_header->seq = htonl(global_Seq_number);
         tcp_header->ack = htonl(global_Ack_number);
