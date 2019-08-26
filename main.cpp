@@ -1,11 +1,16 @@
 #include "include.h"
 
-char ** global_argv = nullptr;
 uint8_t global_client_ip[4];
 uint8_t global_server_ip[4];
-
 unsigned char global_packet[10000];
 int global_ret = 0;
+
+
+uint16_t global_connection = 0;
+uint16_t global_dport;
+uint32_t global_Seq_number;
+uint32_t global_Ack_number;
+
 
 void dump(unsigned char* buf, int size) {
     int i;
@@ -42,67 +47,119 @@ static u_int32_t print_pkt (struct nfq_data *tb)
     Tcp * data_tcp_header = (Tcp *)(data + ip_size);
     uint8_t flag = data_tcp_header->flag & 0x3f;
 
-    printf("d_port = %04x\tflag = %02x\t Id = %04x\n", ntohs(data_tcp_header->d_port), flag, ntohs(data_ip_header->Id));
+    printf("\nd_port = %04x\tflag = %02x\t Id = %04x\n", ntohs(data_tcp_header->d_port), flag, ntohs(data_ip_header->Id));
 
 
-    //---------Is Fake packet?-------------------------------------
+    //---------Is SYN packet?--------------------------------------
 
-    if(ntohs(data_tcp_header->d_port) == 0xabcd && flag == 0x18)
+
+    if(flag == 0x02 && global_connection == 0)
     {
+        printf("Received SYN packet\n");
 
-        printf("\nLet's Decapsulation\n");
+        memcpy(global_packet, data, ret);
+        global_ret = ret;
+        return id;
+    }
+
+
+
+
+
+    //---------Is SYN + ACK packet?-------------------------------------
+
+    if(flag == 0x12 && global_connection == 0)
+    {
+        printf("Send SYN + ACK packet\n");
+        printf("Get Seq_num , Ack_num , sport\n");
+
+        global_Seq_number = ntohl(data_tcp_header->seq);
+        global_Seq_number += 1;
+        global_Ack_number = ntohl(data_tcp_header->ack);
+        global_dport = ntohs(data_tcp_header->d_port);
+
+        memcpy(global_packet, data, ret);
+        global_ret = ret;
+
+        return id;
+    }
+
+    //---------Is ACK packet?-------------------------------------
+    if(flag == 0x10 && global_connection == 0)
+    {
+        printf("Received ACK packet\n");
+
+        memcpy(global_packet, data, ret);
+        global_ret = ret;
+        global_connection = 1;
+
+
+
+        return id;
+    }
+
+    //---------Is Encapsulation packet?-------------------------------------
+
+    if(ntohs(data_tcp_header->d_port) == 0xabcd && flag == 0x18 && global_connection == 1)
+    {
+        printf("Let's Decapsulation\n");
 
         Ip * ip_header = (Ip *)global_packet;
+
         memcpy(global_packet, data + 40, ret - 40);
+
         memcpy(ip_header->s_ip, global_server_ip, 4);
+
         calIPChecksum(global_packet);
 
         global_ret = ret - 40;
+
         dump(global_packet, global_ret);
     }
 
     //----------------------------------------------------------
 
-    //----------make fake header--------------------------------
+    //----------Let's Encapsulation--------------------------------
+    else if (global_connection == 1)
+    {
+        printf("GO GO FAKE !!!\n");
+        Ip * ip_header = (Ip *)global_packet;
+        Tcp * tcp_header = (Tcp *)(global_packet + 20);
+
+        memcpy(global_packet + 40, data, ret);
+
+        ip_header->VHL = 0x45;
+        ip_header->TOS = 0x00;
+        ip_header->Total_LEN = htons(uint16_t(ret+40));
+        ip_header->Id = htons(0x1234);
+
+        ip_header->Fragment = htons(0x4000);
+        ip_header->TTL = 0x40;
+        ip_header->protocol = 0x06;
+        memcpy(ip_header->s_ip, global_server_ip, 4);
+        memcpy(ip_header->d_ip, global_client_ip, 4);
+
+        tcp_header->s_port = htons(0xabcd);
+        tcp_header->d_port = htons(global_dport);
+        tcp_header->seq = htonl(global_Seq_number);
+        tcp_header->ack = htonl(global_Ack_number);
+        tcp_header->OFF = 0x50;
+        tcp_header->flag = 0x18;
+        tcp_header->win_size = htons(0x1212);
+        tcp_header->urg_pointer = 0;
+
+        calIPChecksum(global_packet);
+        calTCPChecksum(global_packet, ret + 40);
+
+
+        global_ret = ret + 40;
+    }
     else
     {
         memcpy(global_packet, data, ret);
         global_ret = ret;
+
     }
-    //    else
-    //    {
-    //        printf("GO GO FAKE !!!\n");
-    //        Ip * ip_header = (Ip *)global_packet;
-    //        Tcp * tcp_header = (Tcp *)(global_packet + 20);
-
-    //        memcpy(global_packet + 40, data, ret);
-
-    //        ip_header->VHL = 0x45;
-    //        ip_header->TOS = 0x00;
-    //        ip_header->Total_LEN = htons(uint16_t(ret+40));
-    //        ip_header->Id = htons(0x1234);
-
-    //        ip_header->Fragment = htons(0x4000);
-    //        ip_header->TTL = 0x40;
-    //        ip_header->protocol = 0x06;
-    //        memcpy(ip_header->s_ip, global_server_ip, 4);
-    //        memcpy(ip_header->d_ip, global_client_ip, 4);
-
-    //        tcp_header->s_port = htons(0xabcd);
-    //        tcp_header->d_port = htons(0xabcd);
-    //        tcp_header->seq = htonl(1);
-    //        tcp_header->ack = htonl(1);
-    //        tcp_header->OFF = 0x50;
-    //        tcp_header->flag = 0x18;
-    //        tcp_header->win_size = htons(0x1212);
-    //        tcp_header->urg_pointer = 0;
-
-    //        calIPChecksum(global_packet);
-    //        calTCPChecksum(global_packet, ret + 40);
-
-
-    //        global_ret = ret + 40;
-    //    }
 
     //----------------------------------------------------------
 
@@ -128,8 +185,14 @@ static int cb(struct nfq_q_handle *qh, struct nfgenmsg *nfmsg,
 int main(int argc, char **argv)
 {
 
-    int arr[2];
-    TCP_connection(arr);
+//    int arr[2];
+//    TCP_connection(arr);
+
+    if(argc != 2)
+    {
+        printf("Usage: ./tcp_tunneling_server <client_ip> \n");
+        return -1;
+    }
 
 
     //**************************************************************
@@ -140,7 +203,7 @@ int main(int argc, char **argv)
     int rv;
     char buf[4096] __attribute__ ((aligned));
 
-    char * dev = "wlan0";
+    char * dev = "eth1";
     GET_my_ip(dev, global_server_ip);
     inet_pton(AF_INET, argv[1], global_client_ip);
 
@@ -213,8 +276,8 @@ int main(int argc, char **argv)
 
     printf("closing library handle\n");
     nfq_close(h);
-    close(arr[0]);
-    close(arr[1]);
+//    close(arr[0]);
+//    close(arr[1]);
 
     exit(0);
 }
